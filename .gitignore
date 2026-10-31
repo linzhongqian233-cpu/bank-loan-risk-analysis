@@ -16,3 +16,6 @@ __pycache__/
 
 # 系统
 Thumbs.db
+
+# Plotly 本地备份（4.6MB，不入库，页面用 CDN + 本地 fallback）
+docs/plotly.min.js
