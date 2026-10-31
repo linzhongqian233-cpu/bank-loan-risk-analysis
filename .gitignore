@@ -1,0 +1,18 @@
+# 数据不入库
+data/
+*.csv
+*.parquet
+!reports/tables/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+
+# 编辑器
+.vscode/
+.idea/
+
+# 系统
+Thumbs.db
