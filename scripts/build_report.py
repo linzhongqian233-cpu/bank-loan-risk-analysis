@@ -10,16 +10,18 @@
 """
 import duckdb
 import os
+import sys
 import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "docs", "index.html")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import PARQUET, OBS_END, DOCS
+
+OUT = os.path.join(DOCS, "index.html")
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
-P = "read_parquet('D:/datasets/processed/lc_accepted.parquet')"
-OBS_END = "DATE '2018-12-01'"
+P = PARQUET
 
 BASE = f"""
 WITH src AS (

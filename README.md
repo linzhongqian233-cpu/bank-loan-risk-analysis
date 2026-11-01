@@ -93,32 +93,53 @@
 
 ```
 bank-loan-risk-analysis/
-├── scripts/
-│   ├── to_parquet.py          CSV → Parquet（258 MB）
-│   └── run_analysis.py        全流程分析（分层/Vintage/状态/回款）
-├── reports/
-│   ├── figures/               3 张核心图表
-│   └── tables/                4 份数据表（供看板使用）
+├── scripts/                   可复现脚本（路径支持环境变量覆盖）
+│   ├── common.py                  路径与观测截止配置
+│   ├── to_parquet.py              CSV → Parquet（1.56 GB → 258 MB）
+│   ├── run_analysis.py            分层 / Vintage / 账龄状态 / 回款
+│   └── build_report.py            生成 Plotly 风控报表
+├── sql/                       5 个独立查询文件（DuckDB 语法）
+│   ├── 01_clean.sql               清洗规则 + 质量检查
+│   ├── 02_segmentation.sql        评级分层 + 粗利差
+│   ├── 03_vintage.sql             Vintage 矩阵（核心）
+│   ├── 04_mob_status.sql          账龄 × 状态分布
+│   └── 05_recovery.sql            回款构成与回收率
 ├── docs/
-│   ├── data_quality.md        数据体检报告
-│   └── recommendations.md     结论与风控建议
-├── sql/                       核心查询 SQL（DuckDB 语法）
+│   ├── decision_memo.md           2 页决策备忘录（结论前置）
+│   ├── data_quality.md            数据体检报告
+│   ├── recommendations.md         结论与风控建议
+│   ├── reproducibility.md         复现指南与验证记录
+│   ├── interview_pitch.md         3 分钟口述稿 + 6 个追问
+│   └── index.html                 Plotly 报表（GitHub Pages 站点根）
+├── reports/
+│   ├── figures/                   3 张核心图表
+│   └── tables/                    4 份数据表
 └── README.md
 ```
 
-## 复现方式
+## 环境与复现
 
 ```powershell
-# 1. 下载数据（免登录，Hugging Face 镜像）
-#    accepted_2007_to_2018Q4.csv → D:/datasets/raw/lending_club/
-# 2. 转 Parquet（1.56 GB → 258 MB，约 21 秒）
-py scripts/to_parquet.py
-# 3. 跑分析
-py scripts/run_analysis.py
+# 1) 安装依赖
+py -m pip install -r requirements.txt
+
+# 2) 指定数据路径（数据可从 Hugging Face 免登录下载，见 docs/reproducibility.md）
+$env:LC_CSV     = "D:/datasets/raw/lending_club/accepted_2007_to_2018Q4.csv"
+$env:LC_PARQUET = "D:/datasets/processed/lc_accepted.parquet"
+
+# 3) 三步跑通
+py scripts/to_parquet.py      # 1.56 GB → 258 MB，约 21 秒
+py scripts/run_analysis.py    # 分层 / Vintage / 状态 / 回款
+py scripts/build_report.py    # 重建 Plotly 报表
 ```
+
+预期输出与校验数字见 [`docs/reproducibility.md`](docs/reproducibility.md)，
+给业务方的结论见 [`docs/decision_memo.md`](docs/decision_memo.md)，
+面试讲法见 [`docs/interview_pitch.md`](docs/interview_pitch.md)。
 
 ## 踩过的坑
 
 1. **Vintage 的观测月数不能用 `MIN(mob)`**：每个 cohort 都有「当月即还款」的贷款，`MIN` 会取到 0，导致所有账龄不良率变成 NaN。必须按 cohort 统一计算「放款季度首日 → 观测截止」的月数。
 2. **`issue_d` 是 `Dec-2015` 格式**：DuckDB 用 `strptime(issue_d, '%b-%Y')`，MySQL 要用 `STR_TO_DATE(issue_d, '%b-%Y')`。
 3. **不能忽略 Current 状态**：38.85% 的贷款还在还，直接算 `Charged Off / 总数` 会把不良率从真实的 13%+ 压到 11.9%。
+4. **数值列不能与空字符串比较**：`dti` 是 DOUBLE，写 `dti IS NULL OR dti = ''` 会报 `Could not convert string '' to DOUBLE`，数值列只用 `IS NULL`。

@@ -11,21 +11,24 @@
 """
 import duckdb
 import os
+import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from common import PARQUET, OBS_END, FIGURES, TABLES
+
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FIG = os.path.join(ROOT, "reports", "figures")
-TAB = os.path.join(ROOT, "reports", "tables")
+FIG = FIGURES
+TAB = TABLES
 os.makedirs(FIG, exist_ok=True)
 os.makedirs(TAB, exist_ok=True)
 
-P = "read_parquet('D:/datasets/processed/lc_accepted.parquet')"
+P = PARQUET
 
 # ------------------------------------------------------------------
 # 清洗视图
@@ -61,9 +64,7 @@ clean AS (
 SELECT * FROM clean
 """
 
-OBS_END = "DATE '2018-12-01'"   # 数据观测截止
-
-# 账龄：放款月 → (违约贷款的)最后还款月 或 观测截止
+# 账龄：放款月 → (违约贷款的)最后还款月 或 观测截止（OBS_END 来自 common.py）
 BASE2 = f"""
 WITH b AS ({BASE})
 SELECT *,
