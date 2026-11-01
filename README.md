@@ -109,7 +109,6 @@ bank-loan-risk-analysis/
 │   ├── data_quality.md            数据体检报告
 │   ├── recommendations.md         结论与风控建议
 │   ├── reproducibility.md         复现指南与验证记录
-│   ├── interview_pitch.md         3 分钟口述稿 + 6 个追问
 │   └── index.html                 Plotly 报表（GitHub Pages 站点根）
 ├── reports/
 │   ├── figures/                   3 张核心图表
@@ -134,8 +133,7 @@ py scripts/build_report.py    # 重建 Plotly 报表
 ```
 
 预期输出与校验数字见 [`docs/reproducibility.md`](docs/reproducibility.md)，
-给业务方的结论见 [`docs/decision_memo.md`](docs/decision_memo.md)，
-面试讲法见 [`docs/interview_pitch.md`](docs/interview_pitch.md)。
+给业务方的结论见 [`docs/decision_memo.md`](docs/decision_memo.md)。
 
 ## 踩过的坑
 
